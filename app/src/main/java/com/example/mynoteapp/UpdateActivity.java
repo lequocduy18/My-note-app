@@ -3,6 +3,8 @@ package com.example.mynoteapp;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -18,6 +20,7 @@ public class UpdateActivity extends AppCompatActivity {
     Button update_button, delete_button;
 
     String id, title, content;
+    private NotificationManagerCompat notificationManagerCompat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +31,7 @@ public class UpdateActivity extends AppCompatActivity {
         content_input = findViewById(R.id.content_input2);
         update_button = findViewById(R.id.update_button);
         delete_button = findViewById(R.id.delete_button);
+        notificationManagerCompat = NotificationManagerCompat.from(this);
 
         //First we call this
         getAndSetIntentData();
@@ -46,6 +50,9 @@ public class UpdateActivity extends AppCompatActivity {
                 title = title_input.getText().toString().trim();
                 content = content_input.getText().toString().trim();
                 myDB.updateData(id, title, content);
+
+                sendOnChannel2(view);
+
             }
         });
         delete_button.setOnClickListener(new View.OnClickListener() {
@@ -93,5 +100,15 @@ public class UpdateActivity extends AppCompatActivity {
             }
         });
         builder.create().show();
+    }
+
+    public void sendOnChannel2(View v){
+        android.app.Notification notification = new NotificationCompat.Builder(this, MyNotification.CHANNEL_2_ID)
+                .setSmallIcon(R.drawable.ic_baseline_update_24)
+                .setContentText("Update success")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .build();
+
+        notificationManagerCompat.notify(2, notification);
     }
 }

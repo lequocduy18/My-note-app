@@ -1,13 +1,17 @@
 package com.example.mynoteapp;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 
 class MyDatabaseHelper extends SQLiteOpenHelper {
 
