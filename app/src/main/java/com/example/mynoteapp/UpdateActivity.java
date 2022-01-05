@@ -6,21 +6,36 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.material.timepicker.MaterialTimePicker;
+import com.google.android.material.timepicker.TimeFormat;
+
+import java.util.Calendar;
 
 public class UpdateActivity extends AppCompatActivity {
 
     EditText title_input, content_input;
-    Button update_button, delete_button;
+    Button update_button, delete_button, selectTime_button, setAlarm_button, cancelAlarm_button;
+    TextView selectedTime;
 
     String id, title, content;
     private NotificationManagerCompat notificationManagerCompat;
+    private MaterialTimePicker picker;
+    private Calendar calendar;
+    private AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +46,10 @@ public class UpdateActivity extends AppCompatActivity {
         content_input = findViewById(R.id.content_input2);
         update_button = findViewById(R.id.update_button);
         delete_button = findViewById(R.id.delete_button);
+        selectTime_button = findViewById(R.id.selectedTimeBtn2);
+        setAlarm_button = findViewById(R.id.setAlarmBtn2);
+        cancelAlarm_button = findViewById(R.id.cancelAlarmBtn2);
+        selectedTime = findViewById(R.id.selectedTime2);
         notificationManagerCompat = NotificationManagerCompat.from(this);
 
         //First we call this
@@ -59,6 +78,27 @@ public class UpdateActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 confirmDialog();
+            }
+        });
+
+        selectTime_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showTimePicker2();
+            }
+        });
+
+        setAlarm_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setAlarm2();
+            }
+        });
+
+        cancelAlarm_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cancelAlarm2();
             }
         });
 
@@ -110,5 +150,57 @@ public class UpdateActivity extends AppCompatActivity {
                 .build();
 
         notificationManagerCompat.notify(2, notification);
+    }
+
+    public void showTimePicker2() {
+        picker = new MaterialTimePicker.Builder()
+                .setTimeFormat(TimeFormat.CLOCK_12H)
+                .setHour(12)
+                .setMinute(0)
+                .setTitleText("Select alarm time")
+                .build();
+
+        picker.show(getSupportFragmentManager(), "");
+        picker.addOnPositiveButtonClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(picker.getHour() > 12){
+                    selectedTime.setText(
+                            String.format("%02d",(picker.getHour()-12))+" : "+String.format("%02d",picker.getMinute())+" PM"
+                    );
+                } else {
+                    selectedTime.setText(picker.getHour() + " : " + picker.getMinute() + " AM");
+                }
+
+                calendar = Calendar.getInstance();
+                calendar.set(Calendar.HOUR_OF_DAY, picker.getHour());
+                calendar.set(Calendar.MINUTE, picker.getMinute());
+                calendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.MILLISECOND, 0);
+            }
+        });
+
+
+    }
+
+    public void setAlarm2() {
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(this, 0 ,intent, 0);
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
+                pendingIntent);
+        Toast.makeText(this, "Alarm set Successfully", Toast.LENGTH_SHORT).show();
+    }
+
+    public void cancelAlarm2() {
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(this, 0 ,intent, 0);
+        if(alarmManager == null){
+            alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        }
+        alarmManager.cancel(pendingIntent);
+        Toast.makeText(this, "Alarm cancel", Toast.LENGTH_SHORT).show();
     }
 }
